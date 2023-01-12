@@ -1,11 +1,11 @@
 import React,{useState,useEffect} from 'react'
 import { useNavigate, useParams } from "react-router-dom";
-export const ProductDetailPage = () => {
+export const ProductDetailPage = ({addToCart}) => {
   const { id } = useParams();
   const navigate= useNavigate();
   const [product,setProduct]=useState();
   const [isLoading,setIsLoading]=useState(true);
-
+  const [quantity,setQuantity]=useState(1);
   useEffect( ()=>{
     const getInitialData = async ()=>{
       await getData();
@@ -51,8 +51,10 @@ export const ProductDetailPage = () => {
       </div>
       <div className="row mt-3">
         <div className="col  ">
-        <select className="form-select" aria-label="Default select example">
-            <option value="1" selected>1</option>
+        <select value={quantity} onChange={(e)=>{
+          setQuantity(Number(e.target.value));
+        }} className="form-select" aria-label="Default select example">
+            <option value="1">1</option>
             <option value="2">2</option>
             <option value="3">3</option>
             <option value="4">4</option>
@@ -65,7 +67,9 @@ export const ProductDetailPage = () => {
       </div>
       <div className="row mt-3">
         <div className="col">
-          <button className='btn btn-dark'> Add to cart</button>
+          <button onClick={()=>{
+            addToCart(product,quantity);
+          }} className='btn btn-dark'> Add to cart</button>
         </div>
       </div>
     </div>

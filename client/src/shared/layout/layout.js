@@ -1,7 +1,7 @@
 import React ,{useState}from 'react'
 import { Link, Outlet } from 'react-router-dom'
 import Modal from 'react-bootstrap/Modal';
-const Layout = () => {
+const Layout = ({cart,total}) => {
   const [showRegisterModal, setShowRegisterModal] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [userRegister,setUserRegister]=useState({
@@ -33,16 +33,16 @@ const Layout = () => {
              
                 <>
                 <li class="nav-item dropdown">
-                    <button className="btn btn-outline-dark me-2"  id="navbarDropdown"  data-bs-toggle="dropdown" aria-expanded="false">
+                    <button className="btn btn-outline-dark me-2"  id="navbarDropdown" style={{"maxWidth": 200}} data-bs-toggle="dropdown" aria-expanded="false">
                     <span className='fa-solid fa-cart-shopping'> </span>
                     </button>
-                        <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                        <ul class="dropdown-menu " aria-labelledby="navbarDropdown" >
                           <div className="row">
                             <div className="col">
-                              <h6 className='dropdown-header'> Produtos</h6>
+                              <h6 className='dropdown-header'> Carrinho</h6>
                             </div>
                           </div>
-                          {/* {cartProducts.length===0 && <>
+                          {cart.length===0 && <>
                           
                           <div className="row">
                             <div className="col">
@@ -51,13 +51,41 @@ const Layout = () => {
                           </div>
                           </>
 
-                          } */}
-                        {/* <div class="dropdown-divider"></div>
-                        <div className="row">
-                          <div className="col">
+                          }
+                        {cart.length>0 && <>
+                          {cart.map((element,index)=>{
 
+                            return (
+                              <div key={index} className="row mt-2">
+                                <div className="col">
+                                <img src={element.imgUrl} height={50} width={50} alt="" />
+                                </div>
+                                <div className="col mt-3">
+                               <h6> {element.price}€</h6>
+                                </div>
+                                <div className="col mt-3">
+                                 <h6>{element.quantity}</h6>
+                                </div>
+                              </div>
+
+                            )
+                          })}
+                        <hr class="dropdown-divider"></hr>
+                        <div className="row">
+                          <div className="col d-flex justify-content-end">
+                            <h6 className='me-2'> Total : {total}€</h6>
+                           
                           </div>
-                        </div> */}
+                        </div>
+                        <div className="row d-flex justify-content-center">
+                          <div className="col-8 ">
+                            <div>
+                            <Link to="checkout" className='btn btn-dark w-100'> Checkout</Link>
+                            </div>
+                           
+                          </div>
+                        </div>
+                        </>  }
 
                         </ul>
                       </li>
