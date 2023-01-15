@@ -1,22 +1,64 @@
-import React ,{useState}from 'react'
+import { useContext, useState } from "react";
 import { Link, Outlet } from 'react-router-dom'
+import { UserContext } from "../context/user.context";
 import Modal from 'react-bootstrap/Modal';
 const Layout = ({cart,total}) => {
-  const [showRegisterModal, setShowRegisterModal] = useState(false);
-  const [showLoginModal, setShowLoginModal] = useState(false);
-  const [userRegister,setUserRegister]=useState({
+  const [showRegisterModal, setShowModal] = useState(false);
+  const [isLogin, setIsLogin] = useState(false);
+  const [currentUser,setcurrentUser]=useState({
     email:"",
     password:"",
   });
-  const handleRegisterModalClose = () => setShowRegisterModal(false);
-  const handleRegisterModalShow = () => setShowRegisterModal(true);
-
-  const handleLoginModalClose = () => setShowLoginModal(false);
-  const handleLoginModalShow = () => setShowLoginModal(true);
+  const { user, setUser } = useContext(UserContext);
+  const handleModalClose = () => setShowModal(false);
+  const handleModalShow = () => setShowModal(true);
 
   function onChange({target}){
-    const updatedRegisterUser={...userRegister,[target.name]:target.value}
-    setUserRegister(updatedRegisterUser)
+    const updatedRegisterUser={...currentUser,[target.name]:target.value}
+    setcurrentUser(updatedRegisterUser)
+  }
+  async function submit(){
+     
+    if(currentUser.email!=="" && currentUser.password!==""){
+
+      if(!isLogin){
+
+        const result= await fetch("http://localhost:3001/api/auth/signup",{
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          method:"POST",
+          body:JSON.stringify(currentUser)
+        })
+        if(result.status===200){
+          const data= await result.json();
+          localStorage.setItem("token",data.token);
+          setUser(data.user)
+          handleModalClose();
+  
+        }
+      }
+      else{
+        const result= await fetch("http://localhost:3001/api/auth/signin",{
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          method:"POST",
+          body:JSON.stringify(currentUser)
+        })
+        if(result.status===200){
+          const data= await result.json();
+          localStorage.setItem("token",data.token);
+          setUser(data.user)
+          handleModalClose();
+  
+        }
+      }
+    }
+  }
+  function logout(){
+    localStorage.removeItem("token");
+    setUser(null)
   }
   
   return (
@@ -28,15 +70,20 @@ const Layout = ({cart,total}) => {
         <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
           <span className="navbar-toggler-icon"></span>
         </button>
+        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+        <li class="nav-item">
+          <Link class="nav-link active" aria-current="page" to="about">About</Link>
+        </li>
+        </ul>
                 <div className="collapse navbar-collapse" id="navbarSupportedContent">
             <ul className="navbar-nav ms-auto mb-2 mb-lg-0">
              
                 <>
-                <li class="nav-item dropdown">
+                <li className="nav-item dropdown">
                     <button className="btn btn-outline-dark me-2"  id="navbarDropdown" style={{"maxWidth": 200}} data-bs-toggle="dropdown" aria-expanded="false">
                     <span className='fa-solid fa-cart-shopping'> </span>
                     </button>
-                        <ul class="dropdown-menu " aria-labelledby="navbarDropdown" >
+                        <ul className="dropdown-menu " aria-labelledby="navbarDropdown" >
                           <div className="row">
                             <div className="col">
                               <h6 className='dropdown-header'> Carrinho</h6>
@@ -70,7 +117,7 @@ const Layout = ({cart,total}) => {
 
                             )
                           })}
-                        <hr class="dropdown-divider"></hr>
+                        <hr className="dropdown-divider"></hr>
                         <div className="row">
                           <div className="col d-flex justify-content-end">
                             <h6 className='me-2'> Total : {total}€</h6>
@@ -89,8 +136,12 @@ const Layout = ({cart,total}) => {
 
                         </ul>
                       </li>
+                 {!user && <>
                   <li className="nav-item">
                     <button
+                     onClick={()=>{
+                      setIsLogin(true);
+                      handleModalShow()}}
                       className="btn btn-outline-dark me-2"
                       aria-current="page"
                     
@@ -100,14 +151,28 @@ const Layout = ({cart,total}) => {
                   </li>
                   <li className="nav-item ">
                     <button
-                      onClick={handleRegisterModalShow}
+                      onClick={()=>{
+                        setIsLogin(false);
+                        handleModalShow()}}
                       className=" btn btn-dark  "
                       aria-current="page"
                     >
                      Sign Up
                     </button>
                   </li>
+                  </>}
+                  {user && <>
+                  <li className="nav-item dropdown">
+                    <button className="btn btn-outline-dark" data-bs-toggle="dropdown" id="userOptions" data-bs-target="#userOptions" aria-controls="userOptions" aria-expanded="false" aria-label="Toggle navigation"> {user.email}</button>
+                    <ul className="dropdown-menu" aria-labelledby="userOptions">
+                    <li><button onClick={logout} className="dropdown-item" >Logout</button></li>
+                    </ul>
+
+                  
+                  </li>
+                  </>}
                 </>
+                
                 </ul> 
               
     </div>
@@ -119,26 +184,30 @@ const Layout = ({cart,total}) => {
     <Outlet/>
    </div>
 
-   <Modal show={showRegisterModal} onHide={handleRegisterModalClose}>
+   <Modal show={showRegisterModal} onHide={handleModalClose}>
         <Modal.Header closeButton>
-          <Modal.Title>Sign Up</Modal.Title>
+          <Modal.Title>
+
+            {isLogin && "Sign In"}
+            {!isLogin && "Sign Up"}
+          </Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <div className="row mt-2">
             <div className="col">
-            <label for="email" className="form-label">Email address</label>
-            <input value={userRegister.email} onChange={onChange} type="email" name="email" class="form-control" id="email"/>
+            <label htmlFor="email" className="form-label">Email address</label>
+            <input value={currentUser.email} onChange={onChange} type="email" name="email" className="form-control" id="email"/>
             </div>
           </div>
           <div className="row mt-2">
             <div className="col">
-            <label for="password" className="form-label">Password</label>
-            <input value={userRegister.password} onChange={onChange} type="password" name="password" class="form-control" id="password"/>
+            <label htmlFor="password" className="form-label">Password</label>
+            <input value={currentUser.password} onChange={onChange} type="password" name="password" className="form-control" id="password"/>
             </div>
           </div>
           <div className="row mt-3">
             <div className="col">
-              <button className='btn btn-dark w-100'>Sign Up</button>
+              <button onClick={submit} className='btn btn-dark w-100'>Sign Up</button>
             </div>
           </div>
 

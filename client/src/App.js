@@ -1,4 +1,5 @@
 import logo from './logo.svg';
+import { UserContext } from './shared/context/user.context';
 import React, { useContext, useEffect, useMemo, useState } from "react";
 import { Navigate, Route, Routes, useNavigate } from "react-router-dom";
 import Layout from './shared/layout/layout';
@@ -7,25 +8,50 @@ import { RegisterPage } from './pages/auth/register/register';
 import { ProductsPage } from './pages/product/products';
 import { ProductDetailPage } from './pages/product/product.detail';
 import { CheckoutPage } from './pages/checkout/checkout';
+import { ProductEditPage } from './pages/product/product.edit';
+import { AboutPage } from './pages/about/about';
 function App() {
+  const [user, setUser] = useState();
   const [cart,setCart]=useState([]);
   const [total,setTotal]=useState(0);
+  const [isLoading,setIsLoading]=useState(true);
+  const providerValue = useMemo(() => ({ user, setUser }), [user, setUser]);
   useEffect(()=>{
-    getCart();
+    const getInitialData= async ()=>{
+      await getData();
+      getCart();
+      setIsLoading(false);
+    }
+    getInitialData();
 
   },[])
 
   function getCart(){
-    const cart=localStorage.getItem("cart");
+    const cart=sessionStorage.getItem("cart");
     if(cart){
       const currentCart=JSON.parse(cart);
       setCart(currentCart)
       getTotal(currentCart);
     }
     else{
-      localStorage.setItem("cart",[]);
+      sessionStorage.setItem("cart",[]);
     }
    
+  }
+  async function getData(){
+    const token=localStorage.getItem("token");
+    if(token){
+       const response= await fetch("http://localhost:3001/api/auth/getUser",{
+        method:"GET",
+        headers:{
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+
+       })
+       const user= await response.json();
+       setUser(user);
+    }
   }
   function addToCard(product,quantity){
     const updatedCart=[...cart];
@@ -44,14 +70,13 @@ function App() {
         })   
 
     }    
-    localStorage.setItem("cart",JSON.stringify(updatedCart));
+    sessionStorage.setItem("cart",JSON.stringify(updatedCart));
     getTotal(updatedCart);
     setCart(updatedCart);
   }
   function getTotal(cart){
     let total=0
     cart.forEach(element => {
-      console.log(element)
       total=total+(element.price*element.quantity);      
     });
     setTotal(total);
@@ -59,8 +84,10 @@ function App() {
     
   return (
 
-    <>
-    <Routes>
+     <>
+     {!isLoading &&
+       <UserContext.Provider value={providerValue}>
+      <Routes>
             <Route
               path="/"
               element={
@@ -88,6 +115,21 @@ function App() {
                 
               />
                <Route
+                path="/about"
+                element={
+                  <AboutPage 
+                  />
+                }
+                
+              />
+                              <Route
+                path="/products/edit/:id"
+                element={
+                  <ProductEditPage/>
+                }
+                
+              />
+               <Route
                 path="checkout"
                 element={
                   <CheckoutPage cart={cart}/>
@@ -108,8 +150,10 @@ function App() {
               />
             </Route>
             </Routes>
+            </UserContext.Provider>}
       
     </>
+              
    
 
   );

@@ -36,7 +36,7 @@ export const CheckoutPage = ({cart}) => {
                             </div>
                        })}
                     </div>
-                    <div class="card-footer text-muted">
+                    <div className="card-footer text-muted">
                         <div className="row">
                             <div className="col d-flex justify-content-end">
                                 <div>

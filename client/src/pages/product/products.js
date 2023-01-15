@@ -1,10 +1,11 @@
-import React, {  useEffect, useState } from "react";
+import React, {  useEffect, useState, useContext } from "react";
 import { Link } from "react-router-dom";
+import { UserContext } from "../../shared/context/user.context";
 import { LoadingSpinner } from "../../components/loading-spinner/loading.spinner";
 export const ProductsPage = () => {
   const [isLoading,setIsLoading]=useState(true);
   const [products,setProducts]=useState([]);
-
+  const { user, setUser } = useContext(UserContext);
   useEffect(()=>{
     const init= async ()=>{
       await getData();
@@ -55,6 +56,10 @@ export const ProductsPage = () => {
                 </div>
               </div>
               <div className="row mt-3">
+               {user?.role==="admin" &&
+               <div className="col">            
+               <Link to={`/products/edit/${element.id}`} className="btn btn-dark ">Editar</Link>
+                </div> } 
                 <div className="col d-flex justify-content-end">            
                <Link to={`/products/${element.id}`} className="btn btn-dark ">Detalhes</Link>
                 </div>
