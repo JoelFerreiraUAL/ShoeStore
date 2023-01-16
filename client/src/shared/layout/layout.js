@@ -2,7 +2,7 @@ import { useContext, useState } from "react";
 import { Link, Outlet } from 'react-router-dom'
 import { UserContext } from "../context/user.context";
 import Modal from 'react-bootstrap/Modal';
-const Layout = ({cart,total}) => {
+const Layout = ({cart,total,emptyCart,getCart}) => {
   const [showRegisterModal, setShowModal] = useState(false);
   const [isLogin, setIsLogin] = useState(false);
   const [currentUser,setcurrentUser]=useState({
@@ -34,7 +34,9 @@ const Layout = ({cart,total}) => {
           const data= await result.json();
           localStorage.setItem("token",data.token);
           setUser(data.user)
+          getCart();
           handleModalClose();
+         
   
         }
       }
@@ -50,7 +52,9 @@ const Layout = ({cart,total}) => {
           const data= await result.json();
           localStorage.setItem("token",data.token);
           setUser(data.user)
+          getCart();
           handleModalClose();
+
   
         }
       }
@@ -59,6 +63,7 @@ const Layout = ({cart,total}) => {
   function logout(){
     localStorage.removeItem("token");
     setUser(null)
+    emptyCart();
   }
   
   return (
@@ -73,6 +78,9 @@ const Layout = ({cart,total}) => {
         <ul class="navbar-nav me-auto mb-2 mb-lg-0">
         <li class="nav-item">
           <Link class="nav-link active" aria-current="page" to="about">About</Link>
+        </li>
+        <li class="nav-item">
+          <Link class="nav-link active" aria-current="page" to="services">Services</Link>
         </li>
         </ul>
                 <div className="collapse navbar-collapse" id="navbarSupportedContent">

@@ -8,6 +8,7 @@ const secretKey="55ba52cb8b7da952b7d4afea50d11eea";
 const products= require("./db/products.json")
 const users=require("./db/users.json")
 const usersCart=require("./db/usersCart.json")
+const services=require("./db/services.json")
 const cors = require('cors');
 const { verify } = require('crypto');
 const app = express();
@@ -32,21 +33,90 @@ app.get("/api/products/:id",(req,res)=> {
   }
 
 })
+app.get("/api/services",(req,res)=>{
+
+  return res.status(200).send(services);
+})
+app.get("/api/services/:id",(req,res)=> {  
+  const id = req.params.id;
+  const service= services.find(e=>e.id==id);
+  if(service){
+    res.status(200).send(service);
+  }
+  else{
+    res.status(200).send({});
+  }
+
+})
 app.put("/api/products",verifyJwtToken,async (req,res)=> {  
   const user=users.find(u=>u.id===Number(req.userId));
   if(user.role==="admin"){
-    const product=req.body;
-    const currentProducts=products.map(p=>{
-      if(Number(p.id)===Number(product.id)){
-        p.price=Number(product.price)        
-      }
-      return product
-    })
-    await fs.writeFileSync("./db/products.json",JSON.stringify(currentProducts))
-    return res.status(200).send("Ok");
+    let product=req.body;
+    const currentProduct=products.find(p=> Number(p.id)===Number(product.id))
+    currentProduct.price=Number(product.price)     
+    console.log(currentProduct)
+    await fs.writeFileSync("./db/products.json",JSON.stringify(products))
+    return res.status(200).send("Ok");s
   }
   return res.status(400);
 
+})
+app.get("/api/cart",verifyJwtToken,async (req,res)=> {  
+  const user=users.find(u=>u.id===Number(req.userId));
+  console.log(usersCart)
+  const userCart=usersCart.find(uc=>uc.userId===user.id)
+  if(userCart){
+    return res.status(200).send(userCart.cart);
+  }
+  else{
+    res.status(200).send([]);
+  }
+ 
+
+})
+app.post("/api/products/cart",verifyJwtToken,async (req,res)=> {  
+  const user=users.find(u=>u.id===Number(req.userId));
+  let userCart=usersCart.find(uc=>uc.userId===user.id);
+  const product=req.body;
+  if(userCart){
+    console.log(userCart)
+    const productExists= userCart.cart.find(uc=>uc.name===product.name);
+    if(productExists){
+      productExists.quantity=productExists.quantity+product.quantity;
+    }
+    else{
+      userCart.cart.push({
+        id:product.id,
+        name:product.name,
+        price:product.price,
+        imgUrl:product.imgUrl,
+        quantity:product.quantity
+    
+        })
+    }
+  }
+  else{
+    const cartId=usersCart.length+1;
+    let userCart={
+      id:cartId,
+      userId:user.id,
+      cart:[]
+    };
+    userCart.cart=[];
+    userCart.cart.push({
+      id:product.id,
+      name:product.name,
+      price:product.price,
+      imgUrl:product.imgUrl,
+      quantity:product.quantity
+  
+      })
+    console.log(userCart)
+    usersCart.push(userCart);
+  }
+  const currentUserCart= usersCart.find(uc=>uc.userId===user.id);
+  await fs.writeFileSync("./db/usersCart.json",JSON.stringify(usersCart))
+  return res.status(200).send(currentUserCart.cart);
 })
 app.post("/api/auth/signin",async (req,res)=>{
   const user= users.find(u=> u.email==req.body.email)

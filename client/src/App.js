@@ -10,6 +10,8 @@ import { ProductDetailPage } from './pages/product/product.detail';
 import { CheckoutPage } from './pages/checkout/checkout';
 import { ProductEditPage } from './pages/product/product.edit';
 import { AboutPage } from './pages/about/about';
+import { ServicePage } from './pages/services/service';
+import { ServiceDetail } from './pages/services/service.detail';
 function App() {
   const [user, setUser] = useState();
   const [cart,setCart]=useState([]);
@@ -19,23 +21,29 @@ function App() {
   useEffect(()=>{
     const getInitialData= async ()=>{
       await getData();
-      getCart();
+      await getCart();
       setIsLoading(false);
     }
     getInitialData();
 
   },[])
 
-  function getCart(){
-    const cart=sessionStorage.getItem("cart");
-    if(cart){
-      const currentCart=JSON.parse(cart);
-      setCart(currentCart)
-      getTotal(currentCart);
-    }
-    else{
-      sessionStorage.setItem("cart",[]);
-    }
+ async  function getCart(){
+  const token=localStorage.getItem("token");
+  if(token){
+     const response= await fetch("http://localhost:3001/api/cart",{
+      method:"GET",
+      headers:{
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      }
+
+     })
+     const userCart= await response.json();
+     setCart(userCart);
+     getTotal(userCart);
+     setCart(userCart);
+  }
    
   }
   async function getData(){
@@ -53,26 +61,34 @@ function App() {
        setUser(user);
     }
   }
-  function addToCard(product,quantity){
-    const updatedCart=[...cart];
-    let productExists=updatedCart.find(p=>p.id===product.id)
-    if(productExists){
-      productExists.quantity=productExists.quantity+quantity;
-    }
-    else{
-      updatedCart.push({
-        id:product.id,
-        name:product.name,
-        price:product.price,
-        imgUrl:product.imgUrl,
-        quantity:quantity
-    
-        })   
+  function emptyCart(){
+    setCart([]);
+  }
+ async function addToCard(product,quantity){
+    const token=localStorage.getItem("token");
+    const addProduct={
+      id:product.id,
+      name:product.name,
+      price:product.price,
+      imgUrl:product.imgUrl,
+      quantity:quantity
+  
+      }
+    const response= await fetch("http://localhost:3001/api/products/cart",{
+      method:"POST",
+      headers:{
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body:JSON.stringify(addProduct)       
+    })
 
-    }    
-    sessionStorage.setItem("cart",JSON.stringify(updatedCart));
-    getTotal(updatedCart);
-    setCart(updatedCart);
+    const result= await response.json();
+    if(result.length>=1){
+      getTotal(result);
+      setCart(result);
+    }
+
   }
   function getTotal(cart){
     let total=0
@@ -91,7 +107,7 @@ function App() {
             <Route
               path="/"
               element={
-                  <Layout cart={cart} total={total} />
+                  <Layout getCart={getCart} emptyCart={emptyCart} cart={cart} total={total} />
                   
               }
             >
@@ -119,6 +135,21 @@ function App() {
                 element={
                   <AboutPage 
                   />
+                }
+                
+              />
+                <Route
+                path="/services"
+                element={
+                  <ServicePage 
+                  />
+                }
+                
+              />
+                              <Route
+                path="/services/:id"
+                element={
+                  <ServiceDetail addToCart={addToCard}/>
                 }
                 
               />
