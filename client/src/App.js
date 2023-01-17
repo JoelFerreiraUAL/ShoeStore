@@ -12,6 +12,7 @@ import { ProductEditPage } from './pages/product/product.edit';
 import { AboutPage } from './pages/about/about';
 import { ServicePage } from './pages/services/service';
 import { ServiceDetail } from './pages/services/service.detail';
+import { JokesPage } from './pages/jokes/jokes';
 function App() {
   const [user, setUser] = useState();
   const [cart,setCart]=useState([]);
@@ -128,6 +129,12 @@ function App() {
                 path="/products"
                 element={
                   <ProductsPage/>
+                }
+              />
+              <Route
+                path="/jokes"
+                element={
+                  <JokesPage/>
                 }
               />
                 <Route

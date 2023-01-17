@@ -82,6 +82,9 @@ const Layout = ({cart,total,emptyCart,getCart}) => {
         <li class="nav-item">
           <Link class="nav-link active" aria-current="page" to="services">Services</Link>
         </li>
+        <li class="nav-item">
+          <Link class="nav-link active" aria-current="page" to="jokes">Jokes</Link>
+        </li>
         </ul>
                 <div className="collapse navbar-collapse" id="navbarSupportedContent">
             <ul className="navbar-nav ms-auto mb-2 mb-lg-0">

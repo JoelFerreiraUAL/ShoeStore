@@ -10,6 +10,7 @@ const users=require("./db/users.json")
 const usersCart=require("./db/usersCart.json")
 const services=require("./db/services.json")
 const cors = require('cors');
+const axios = require('axios');
 const { verify } = require('crypto');
 const app = express();
 app.use(cors())
@@ -192,4 +193,15 @@ app.post("/api/auth/signup",async (req,res)=>{
     res.sendStatus(400);
   }
 
+})
+
+app.get("/api/jokes",async (req,res)=>{
+  const options = {
+    method: 'GET',
+    url: 'https://api.chucknorris.io/jokes/random?category=dev',
+  };
+  
+  const response= await axios.request(options);
+  const result=response.data;
+  return res.status(200).send(result);
 })
